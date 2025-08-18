@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="tl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Click to Care — Prototype (Admin & User)</title>
+<meta name="description" content="Click to Care prototype with Admin (CRUD) and User (view-only) modes. Single-file HTML/CSS/JS.">
+<style>
+:root{
+  --bg:#041226; --panel:#071428; --muted:#98b0c9; --text:#e6f7ff;
+  --accent:#22d3ee; --accent2:#34d399; --danger:#ff6b6b; --glass: rgba(255,255,255,0.03);
+  --border: rgba(255,255,255,0.04);
+  --radius:12px; --maxw:1100px; --shadow: 0 8px 30px rgba(2,6,23,0.6);
+  --mono: "Segoe UI", Roboto, Arial, sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; font-family:var(--mono); color:var(--text); background:linear-gradient(180deg,#021028,#041226);
+  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; line-height:1.45;
+}
+.container{width:min(var(--maxw),94%); margin:22px auto 60px}
+
+/* header */
+.header{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  background:linear-gradient(180deg,#061633,#071428); padding:14px; border-radius:14px; border:1px solid var(--border);
+}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:46px;height:46px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#001;font-weight:800}
+.brand h1{font-size:18px;margin:0}
+.brand p{margin:0;color:var(--muted);font-size:13px}
+
+/* nav */
+.nav{display:flex;gap:10px;align-items:center}
+.nav a{color:var(--text);text-decoration:none;padding:8px 10px;border-radius:8px;font-weight:700}
+.nav a:hover{background:var(--glass)}
+.mode-pill{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,0.02);font-weight:800;color:var(--muted)}
+
+/* layout */
+.grid{display:grid;grid-template-columns:1fr 380px;gap:18px;margin-top:18px}
+@media(max-width:980px){.grid{grid-template-columns:1fr}}
+.panel{background:linear-gradient(180deg,#071427,#061226);border-radius:12px;padding:14px;border:1px solid var(--border);box-shadow:var(--shadow)}
+
+/* sections */
+.section-title{color:var(--accent);margin:0 0 8px 0;font-size:15px}
+.lead{color:var(--muted);margin:0 0 12px 0;font-size:14px}
+
+/* search */
+.controls{display:flex;gap:8px;margin-bottom:12px}
+.controls input{flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text)}
+.controls button{padding:9px 12px;border-radius:10px;border:none;cursor:pointer;background:transparent;color:var(--text);border:1px solid var(--border)}
+
+/* table */
+.table-wrap{overflow:auto;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;min-width:720px}
+thead th{position:sticky;top:0;background:linear-gradient(180deg,#081428,#071225);padding:12px 14px;text-align:left;color:var(--muted);font-size:13px;border-bottom:1px solid var(--border)}
+tbody td{padding:12px 14px;border-bottom:1px dashed var(--border);font-size:14px;color:var(--text)}
+tbody tr:hover td{background:rgba(255,255,255,0.01)}
+.small{font-size:13px;color:var(--muted)}
+.pill{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,0.02);border:1px solid var(--border);color:var(--text);font-weight:800}
+
+/* buttons */
+.btn{padding:8px 10px;border-radius:10px;border:none;cursor:pointer;font-weight:800}
+.btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#002}
+.btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn.warn{background:linear-gradient(90deg,#ffcf67,#ff9a6b);color:#001}
+.btn.danger{background:linear-gradient(90deg,#ff7b7b,#ff4b4b);color:#fff}
+
+/* form */
+.form .field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+label{font-weight:700;color:var(--muted);font-size:13px}
+input[type="text"], input[type="email"], textarea{padding:10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text)}
+textarea{min-height:88px;resize:vertical}
+
+/* mobile card view */
+@media(max-width:720px){
+  table, thead, tbody, th, td, tr{display:block}
+  thead{display:none}
+  tr{margin-bottom:12px;border-radius:10px;border:1px solid var(--border);padding:10px;background:linear-gradient(180deg,#071225,#061023)}
+  td{border:none;padding:6px 0}
+  td.label{color:var(--muted);font-weight:700;width:40%}
+}
+
+/* landing */
+.landing{display:grid;gap:12px;align-items:center;justify-items:center;text-align:center;padding:40px 20px}
+.choice{display:flex;gap:12px;flex-wrap:wrap}
+.choice button{min-width:160px;padding:12px 16px;border-radius:12px;border:none;cursor:pointer;font-weight:800}
+
+/* footer */
+footer{margin-top:18px;text-align:center;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+  <div class="container" id="app">
+    <header class="header">
+      <div class="brand">
+        <div class="logo">CC</div>
+        <div>
+          <h1>Click to Care</h1>
+          <p class="small">Web Training Center & Tracking Hub — Prototype</p>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px">
+        <nav class="nav" id="topnav" aria-label="Main navigation" style="display:none">
+          <a href="#" data-target="about" class="nav-link">About</a>
+          <a href="#" data-target="training" class="nav-link">Training</a>
+          <a href="#" data-target="tracking" class="nav-link">Tracking</a>
+          <a href="#" data-target="partners" class="nav-link">Partners</a>
+          <a href="#" data-target="contact" class="nav-link">Contact</a>
+        </nav>
+        <div class="mode-pill" id="modePill">Mode: Visitor</div>
+      </div>
+    </header>
+
+    <!-- LANDING: choose admin or user -->
+    <div id="landing" class="panel landing">
+      <h2 class="section-title">Welcome — Choose Mode</h2>
+      <p class="lead">Bumati sa Click to Care prototype. Piliin kung pupunta ka bilang Admin (may access sa CRUD) o User (view-only).</p>
+      <div class="choice">
+        <button class="choice-admin btn primary" id="btnAdmin">Login as Admin</button>
+        <button class="choice-user btn ghost" id="btnUser">Continue as User</button>
+        <button class="choice-reset btn warn" id="btnReset">Reset Sample Data</button>
+      </div>
+      <p class="small">Admin access is simulated (no password) for prototype purpose only.</p>
+    </div>
+
+    <!-- MAIN APP (hidden until choose) -->
+    <div id="mainApp" style="display:none">
+      <div class="grid">
+        <!-- LEFT: content area -->
+        <main class="panel" id="contentArea">
+          <!-- Sections -->
+          <section id="about" class="app-section" style="display:none">
+            <h2 class="section-title">About — Click to Care</h2>
+            <p class="lead">Click to Care is a feasibility prototype for a Web Training Center & Tracking Hub for kasambahay in Cabanatuan City. We partner with agencies and employers to provide pre-deployment training and tracking.</p>
+            <h3>Mission</h3>
+            <p>Provide accessible training and a simple tracking hub so kasambahay are prepared and protected.</p>
+          </section>
+
+          <section id="training" class="app-section" style="display:none">
+            <h2 class="section-title">Training Programs</h2>
+            <p class="lead">Sample modules offered to kasambahay:</p>
+            <ul>
+              <li>Household Basics — cleaning, laundry, sanitation</li>
+              <li>Child & Elder Care — routines, basic first aid</li>
+              <li>Professional Conduct — rights & responsibilities, etiquette</li>
+              <li>Home Safety — fire safety, hazard identification</li>
+              <li>Cooking Essentials — menu planning, food safety</li>
+            </ul>
+          </section>
+
+          <section id="tracking" class="app-section" style="display:none">
+            <h2 class="section-title">Tracking Hub</h2>
+            <p class="lead">Monitoring deployment status. This prototype uses browser storage — admin changes are local to the browser. For shared data, connect to a cloud DB (Firebase/Airtable).</p>
+            <p class="small">Sample tracking view (static):</p>
+            <div style="margin-top:8px">
+              <table style="width:100%;border-collapse:collapse">
+                <thead><tr><th>Ref</th><th>Name</th><th>Agency</th><th>Assignment</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td>CC-K001</td><td>Maria Santos</td><td>Nova Kasambahay</td><td>Child Care</td><td><span class="pill">Deployed</span></td></tr>
+                  <tr><td>CC-K002</td><td>Jonalyn Cruz</td><td>CityCare</td><td>Household Basics</td><td><span class="pill">Training</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="partners" class="app-section" style="display:none">
+            <h2 class="section-title">Partners / Companies</h2>
+            <p class="lead">List of partner companies. Admin can add/edit/delete. User can only view.</p>
+
+            <div class="controls">
+              <input id="search" placeholder="Search company, training, address..." />
+              <button id="clearSearch" class="btn ghost">Clear</button>
+              <button id="exportCSV" class="btn ghost">Export CSV</button>
+            </div>
+
+            <div class="table-wrap" style="margin-top:8px">
+              <table id="companiesTable">
+                <thead>
+                  <tr><th>Ref ID</th><th>Company</th><th>Address</th><th>Contact</th><th>Trainings</th><th>Created</th><th>Updated</th><th>Actions</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+
+            <p id="status" class="tiny" style="margin-top:8px">Status: ready</p>
+          </section>
+
+          <section id="contact" class="app-section" style="display:none">
+            <h2 class="section-title">Contact</h2>
+            <p class="lead">Para sa partnership inquiries, email: <strong>admin@clicktocare.example</strong></p>
+          </section>
+
+        </main>
+
+        <!-- RIGHT: Admin form / User info -->
+        <aside class="panel form" id="sidePanel">
+          <!-- Admin controls -->
+          <div id="adminControls" style="display:none">
+            <h3 class="section-title">Admin: Add / Edit Company</h3>
+            <form id="companyForm">
+              <input type="hidden" id="editingId" value="">
+              <div class="field"><label>Company Name *</label><input id="companyName" type="text" placeholder="Hal. ABC Household Services" required></div>
+              <div class="field"><label>Address</label><input id="companyAddress" type="text" placeholder="Street, Barangay, Cabanatuan City"></div>
+              <div class="field"><label>Contact (name / phone / email)</label><input id="companyContact" type="text" placeholder="Maria • +63 9xx • maria@email.com"></div>
+              <div class="field"><label>Preferred Trainings (comma-separated)</label><input id="companyNeeds" type="text" placeholder="Household Basics, Child & Elder Care"></div>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button class="btn primary" type="submit" id="saveBtn">Add & Save</button>
+                <button class="btn ghost" type="button" id="clearForm">Clear</button>
+              </div>
+              <p class="tiny" style="margin-top:8px">Note: Admin mode stores data in this browser's LocalStorage.</p>
+            </form>
+          </div>
+
+          <!-- User view -->
+          <div id="userInfo" style="display:none">
+            <h3 class="section-title">User View</h3>
+            <p class="lead">Welcome! This is the user view. You can see partner companies and training programs. If you need assistance, contact the admin.</p>
+            <p class="small">Tip: Switch to Admin if you are an authorized staff to manage records.</p>
+          </div>
+        </aside>
+      </div>
+
+      <footer>
+        Prototype — Click to Care • Cabanatuan City · <span id="recordsCount">0</span> records
+      </footer>
+    </div>
+  </div>
+
+<script>
+(function(){
+  /* ---------- Storage key & helpers ---------- */
+  const STORAGE_KEY = 'clicktocare_companies_v2';
+  function uid(){ return 'CC-P' + Date.now().toString(36).slice(-6); }
+  function nowISO(ts=Date.now()){ return (new Date(ts)).toISOString().slice(0,19).replace('T',' '); }
+  function loadAll(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch(e){ return {}; } }
+  function saveAll(obj){ localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); }
+
+  /* ---------- Sample data initializer ---------- */
+  function ensureSample(){
+    const all = loadAll();
+    if(Object.keys(all).length === 0){
+      const demo = [
+        { company:'Nova Kasambahay Agency', address:'Brgy. San Jose, Cabanatuan City', contact:'Maria D. • +63 912 345 6789 • maria@novakasambahay.com', needs:['Household Basics','Child & Elder Care'], createdAt: Date.now()-864000000, updatedAt: Date.now()-259200000 },
+        { company:'Prime Home Helpers', address:'Brgy. Centro 2, Cabanatuan City', contact:'Liza D. • +63 917 555 8877 • liza@primehelpers.ph', needs:['Professional Conduct','Home Safety'], createdAt: Date.now()-1728000000, updatedAt: Date.now()-432000000 },
+        { company:'CityCare Agency', address:'Brgy. San Vicente, Cabanatuan City', contact:'Ronaldo R. • +63 918 333 2244 • ron@citycare.ph', needs:['Cooking Essentials','Home Safety'], createdAt: Date.now()-172800000, updatedAt: Date.now()-86400000 }
+      ];
+      const map = {};
+      demo.forEach(d => { const id=uid(); map[id]= {...d, id, createdAt:d.createdAt, updatedAt:d.updatedAt }; });
+      saveAll(map);
+    }
+  }
+
+  // ---------- DOM refs ----------
+  const landing = document.getElementById('landing');
+  const mainApp = document.getElementById('mainApp');
+  const topnav = document.getElementById('topnav');
+  const modePill = document.getElementById('modePill');
+  const btnAdmin = document.getElementById('btnAdmin');
+  const btnUser = document.getElementById('btnUser');
+  const btnReset = document.getElementById('btnReset');
+  const sections = document.querySelectorAll('.app-section');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const companiesTableBody = document.querySelector('#companiesTable tbody');
+  const statusEl = document.getElementById('status');
+  const recCount = document.getElementById('recordsCount');
+  const adminControls = document.getElementById('adminControls');
+  const userInfo = document.getElementById('userInfo');
+  const sidePanel = document.getElementById('sidePanel');
+
+  const form = document.getElementById('companyForm');
+  const editingId = document.getElementById('editingId');
+  const nameInput = document.getElementById('companyName');
+  const addressInput = document.getElementById('companyAddress');
+  const contactInput = document.getElementById('companyContact');
+  const needsInput = document.getElementById('companyNeeds');
+  const saveBtn = document.getElementById('saveBtn');
+  const clearFormBtn = document.getElementById('clearForm');
+
+  const searchInput = document.getElementById('search');
+  const clearSearch = document.getElementById('clearSearch');
+  const exportCSV = document.getElementById('exportCSV');
+
+  // state
+  let mode = 'visitor'; // 'admin' or 'user' or 'visitor'
+
+  // ---------- UI helpers ----------
+  function showSection(id){
+    sections.forEach(s => s.style.display = (s.id === id ? '' : 'none'));
+    // highlight nav links (simple)
+    navLinks.forEach(a => a.style.background = (a.dataset.target === id ? 'rgba(255,255,255,0.02)' : 'transparent'));
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  navLinks.forEach(a => {
+    a.addEventListener('click', (e)=>{
+      e.preventDefault();
+      const target = a.dataset.target;
+      showSection(target);
+    });
+  });
+
+  // ---------- Mode switching ----------
+  function enterAdmin(){
+    mode='admin';
+    modePill.textContent = 'Mode: Admin';
+    landing.style.display = 'none';
+    mainApp.style.display = '';
+    topnav.style.display = '';
+    adminControls.style.display = '';
+    userInfo.style.display = 'none';
+    showSection('partners');
+    render();
+  }
+  function enterUser(){
+    mode='user';
+    modePill.textContent = 'Mode: User';
+    landing.style.display = 'none';
+    mainApp.style.display = '';
+    topnav.style.display = '';
+    adminControls.style.display = 'none';
+    userInfo.style.display = '';
+    showSection('about');
+    render();
+  }
+  btnAdmin.addEventListener('click', enterAdmin);
+  btnUser.addEventListener('click', enterUser);
+  btnReset.addEventListener('click', ()=>{
+    if(!confirm('Reset sample data? This will replace current stored records.')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    ensureSample();
+    render();
+    alert('Sample data restored.');
+  });
+
+  // ---------- CRUD operations ----------
+  function render(){
+    const all = loadAll();
+    const keys = Object.keys(all).sort((a,b)=> (all[b].createdAt||0) - (all[a].createdAt||0));
+    const q = (searchInput.value||'').toLowerCase().trim();
+    companiesTableBody.innerHTML = '';
+    let shown = 0;
+    keys.forEach(k => {
+      const r = all[k];
+      const hay = (r.company + ' ' + r.address + ' ' + (r.needs||[]).join(' ') + ' ' + r.contact).toLowerCase();
+      if(q && !hay.includes(q)) return;
+      shown++;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="small">${r.id}</td>
+        <td>${escapeHtml(r.company||'—')}</td>
+        <td>${escapeHtml(r.address||'—')}</td>
+        <td>${escapeHtml(r.contact||'—')}</td>
+        <td>${escapeHtml((r.needs||[]).join(', '))}</td>
+        <td class="small">${r.createdAt ? nowISO(r.createdAt) : '—'}</td>
+        <td class="small">${r.updatedAt ? nowISO(r.updatedAt) : '—'}</td>
+        <td>
+          ${mode==='admin' ? `<button class="btn ghost" data-action="edit" data-id="${r.id}">Edit</button>
+          <button class="btn danger" data-action="delete" data-id="${r.id}">Delete</button>` : '<span class="small">—</span>'}
+        </td>
+      `;
+      companiesTableBody.appendChild(tr);
+    });
+    statusEl.textContent = `Status: ${shown} record(s) shown`;
+    recCount.textContent = Object.keys(all).length;
+    if(shown===0) companiesTableBody.innerHTML = `<tr><td colspan="8" class="small">Walang records. Gumamit ng Add form kung ikaw ay admin.</td></tr>`;
+  }
+
+  // escape helper
+  function escapeHtml(s){ if(!s) return ''; return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'); }
+
+  // event: table actions
+  companiesTableBody.addEventListener('click', (e)=>{
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    const action = btn.dataset.action;
+    const id = btn.dataset.id;
+    if(action==='edit') loadToForm(id);
+    if(action==='delete'){ if(confirm('Sigurado ka bang i-delete ito?')){ const all=loadAll(); delete all[id]; saveAll(all); render(); } }
+  });
+
+  function loadToForm(id){
+    const all=loadAll();
+    const r = all[id];
+    if(!r){ alert('Record not found'); return; }
+    editingId.value = id;
+    nameInput.value = r.company || '';
+    addressInput.value = r.address || '';
+    contactInput.value = r.contact || '';
+    needsInput.value = (r.needs||[]).join(', ');
+    saveBtn.textContent = 'Save Changes';
+    sidePanel.scrollIntoView({behavior:'smooth'});
+  }
+
+  // form submit (add or update)
+  form.addEventListener('submit', (e)=>{
+    e.preventDefault();
+    if(mode!=='admin'){ alert('Admin access required to save.'); return; }
+    const id = editingId.value;
+    const company = (nameInput.value||'').trim();
+    if(!company){ alert('Punan ang Company name'); return; }
+    const address = (addressInput.value||'').trim();
+    const contact = (contactInput.value||'').trim();
+    const needs = (needsInput.value||'').split(',').map(s=>s.trim()).filter(Boolean);
+    const all = loadAll();
+    if(id){
+      // update
+      if(!all[id]){ alert('Record missing'); return; }
+      all[id] = {...all[id], company, address, contact, needs, updatedAt: Date.now()};
+      saveAll(all);
+      render();
+      clearForm();
+    } else {
+      // create
+      const newId = uid();
+      all[newId] = { id:newId, company, address, contact, needs, createdAt: Date.now() };
+      saveAll(all);
+      render();
+      clearForm();
+    }
+  });
+
+  clearFormBtn.addEventListener('click', clearForm);
+  function clearForm(){
+    editingId.value=''; nameInput.value=''; addressInput.value=''; contactInput.value=''; needsInput.value=''; saveBtn.textContent='Add & Save';
+  }
+
+  // search & export
+  searchInput.addEventListener('input', render);
+  clearSearch.addEventListener('click', ()=>{ searchInput.value=''; render(); });
+  exportCSV.addEventListener('click', ()=>{
+    const all = loadAll();
+    const rows=[['Ref ID','Company','Address','Contact','Trainings','Created','Updated']];
+    Object.values(all).sort((a,b)=> (b.createdAt||0)-(a.createdAt||0)).forEach(r=>{
+      rows.push([r.id, r.company, r.address, r.contact, (r.needs||[]).join('; '), r.createdAt?nowISO(r.createdAt):'', r.updatedAt?nowISO(r.updatedAt):'']);
+    });
+    const csv = rows.map(r => r.map(cell => `"${String(cell||'').replaceAll('"','""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='clicktocare_companies.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  });
+
+  // initial
+  document.addEventListener('DOMContentLoaded', ()=>{
+    ensureSample();
+    showSection('about');
+    render();
+  });
+
+  // expose debug
+  window._clicktocare = { loadAll, saveAll, ensureSample };
+
+})();
+</script>
+</body>
+</html>
